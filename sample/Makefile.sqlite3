@@ -1,0 +1,20 @@
+CC			= gcc
+#--------------------------------------------------------------------
+DEFINES		= -DSQLITE_THREADSAFE=2 -DSQLITE_ENABLE_COLUMN_METADATA=1
+CCOPTIONS	= -pipe -g -Wall -W -D_REENTRANT -fPIC $(DEFINES)
+INCLUDES	= -I. -I../sqlite3 -I/usr/include
+LDOPTIONS	=
+LIBS		=
+#--------------------------------------------------------------------
+OBJS	= sqlite3.o
+#--------------------------------------------------------------------
+override CFLAGS := $(CFLAGS) $(CCOPTIONS) $(INCLUDES) $(DEFINES)
+override CXXFLAGS := $(CXXFLAGS) $(CCOPTIONS) $(INCLUDES) $(DEFINES)
+LDFLAGS := $(LDOPTIONS)
+LDLIBS	=
+#--------------------------------------------------------------------
+all: $(OBJS)
+#--------------------------------------------------------------------
+$(OBJS):
+	$(CC) $(CXXFLAGS) $(LDFLAGS) -c ../sqlite3/$*.c -o obj/$@
+#--------------------------------------------------------------------

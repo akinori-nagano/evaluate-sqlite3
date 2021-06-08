@@ -1,6 +1,10 @@
 ﻿#ifndef __TESTMAIN__TESTUTILITY_H__
 #define __TESTMAIN__TESTUTILITY_H__
 
+#define SQLITE3_DEFERRED  (1)
+#define SQLITE3_IMMEDIATE (2)
+#define SQLITE3_EXCLUSIVE (3)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,14 +27,22 @@ extern "C" {
 #if defined(FOR_PLATFORM_WINDOWS)
 	#define snprintf _snprintf_s
 	#define random   rand
-	#define mySleep(__SEC__)       Sleep((__SEC__) * 1000)
-	#define myMicroSleep(__MSEC__) Sleep(__MSEC__)
+	#define __mySleep(__SEC__)       Sleep((__SEC__) * 1000)
+	#define __myMicroSleep(__MSEC__) Sleep(__MSEC__)
 #elif defined(FOR_PLATFORM_IOS) || defined(FOR_PLATFORM_ANDROID)
-	#define mySleep(__SEC__)       usleep((__SEC__) * 1000)
-	#define myMicroSleep(__MSEC__) usleep(__MSEC__)
+	#define __mySleep(__SEC__)       usleep((__SEC__) * 1000 * 1000)
+	#define __myMicroSleep(__MSEC__) usleep(__MSEC__ * 1000)
 #else
-	#define mySleep(__SEC__)	sleep((__SEC__))
+	#define __mySleep(__SEC__)	sleep((__SEC__))
+	#define __myMicroSleep(__MSEC__) usleep(__MSEC__ * 1000)
 #endif
+
+#define mySleep(__SEC__) { \
+	if ((__SEC__) > 1)__mySleep((__SEC__)); \
+}
+#define myMicroSleep(__MSEC__) { \
+	if ((__MSEC__) > 1)__myMicroSleep((__MSEC__)); \
+}
 
 typedef enum {
 	Ok = 0,
@@ -115,7 +127,7 @@ class TestUtility
 
 		TestMainStatus openDB(const char *tag, const char *dbPath);
 		void closeDB(const char *tag);
-		TestMainStatus startTransaction(const char *tag);
+		TestMainStatus startTransaction(const char *tag, int level);
 		TestMainStatus endTransaction(const char *tag, TestMainStatus status);
 		void deleteAll(void);
 
@@ -132,6 +144,8 @@ class TestUtility
 
 		TestMainStatus selectAllView(Table002 **output, int *n_output);
 		TestMainStatus selectViewById(const int id, Table002 *output);
+
+		bool diffTable001(Table001 *s, Table001 *d);
 
 	private:
 		TestMainStatus __selectTable002UniqueRow(const char *sql, Table002 *output);

@@ -100,7 +100,7 @@ __create_test_data(void)
 TestMainStatus
 __create_test_data_one_001(int id_index, int kind_index, int count)
 {
-	if (count >= HashValuesMaxCount) {
+	if ((unsigned long)count >= HashValuesMaxCount) {
 		return TestMainStatus::Error;
 	}
 
@@ -124,7 +124,7 @@ __create_test_data_one_001(int id_index, int kind_index, int count)
 TestMainStatus
 __create_test_data_one_002(int id_index, int count)
 {
-	if (count >= HashValuesMaxCount) {
+	if ((unsigned long)count >= HashValuesMaxCount) {
 		return TestMainStatus::Error;
 	}
 
@@ -225,16 +225,28 @@ TestUtility::closeDB(const char *tag)
 }
 
 TestMainStatus
-TestUtility::startTransaction(const char *tag)
+TestUtility::startTransaction(const char *tag, int level)
 {
-	__INFO("%s: start transaction. (%p)", tag, this->db);
-
 	TestMainStatus status = TestMainStatus::Ok;
-	const char *sql = "BEGIN;";
+	sqlite3_stmt *stmt = NULL;
+
+	const char *sql;
+	if (level == SQLITE3_DEFERRED) {
+		sql = "BEGIN DEFERRED transaction;";
+	} else if (level == SQLITE3_IMMEDIATE) {
+		sql = "BEGIN IMMEDIATE transaction;";
+	} else if (level == SQLITE3_EXCLUSIVE) {
+		sql = "BEGIN EXCLUSIVE transaction;";
+	} else {
+		__FATAL("%s: unknown level. (level=%d)", tag, level);
+		status = TestMainStatus::Error;
+		goto END;
+	}
+	__INFO("%s: start transaction. (%s)(%p)", tag, sql, this->db);
+
 
 #if 1
-	sqlite3_stmt *stmt = __sqlite3_prepare(sql);
-
+	stmt = __sqlite3_prepare(sql);
 	if (__sqlite3_step(stmt, tag, 0, false) != SQLITE_OK) {
 		__FATAL("%s: __sqlite3_step failed.", tag);
 		status = TestMainStatus::Error;
@@ -242,7 +254,9 @@ TestUtility::startTransaction(const char *tag)
 	}
 
 END:
-	sqlite3_finalize(stmt);
+	if (stmt) {
+		sqlite3_finalize(stmt);
+	}
  	return status;
 #else
 	int ret = sqlite3_exec(this->db, sql, NULL, NULL, NULL);
@@ -703,6 +717,48 @@ END:
 	sqlite3_finalize(stmt);
     __INFO("%s: end (id=%d)(%s)(status=%d)", __FUNCTION__, id, isTemp?"temp":"none", status);
 	return status;
+}
+
+bool
+TestUtility::diffTable001(Table001 *s, Table001 *d)
+{
+	bool hasDiff = false;
+
+	if (s->id != d->id) {
+		__FATAL("DIFF: id: %d, %d.", s->id, d->id);
+		hasDiff = true;
+	}
+	if (s->kind != d->kind) {
+		__FATAL("DIFF: kind: %d, %d.", s->kind, d->kind);
+		hasDiff = true;
+	}
+	if (strcmp(s->contents_id, d->contents_id)) {
+		__FATAL("DIFF: contents_id: [%s], [%s].", s->contents_id, d->contents_id);
+		hasDiff = true;
+	}
+	if (strcmp(s->contents_code, d->contents_code)) {
+		__FATAL("DIFF: contents_code: [%s], [%s].", s->contents_code, d->contents_code);
+		hasDiff = true;
+	}
+	if (strcmp(s->hashed_id, d->hashed_id)) {
+		__FATAL("DIFF: hashed_id: [%s], [%s].", s->hashed_id, d->hashed_id);
+		hasDiff = true;
+	}
+	if (s->terminal_value_sz != d->terminal_value_sz) {
+		__FATAL("DIFF: terminal_value_sz: %d, %d.", s->terminal_value_sz, d->terminal_value_sz);
+		hasDiff = true;
+	} else {
+		if (s->terminal_value_sz == 0) {
+			__FATAL("DIFF: terminal_value: is null.");
+			hasDiff = true;
+		} else {
+			if (memcmp(s->terminal_value, d->terminal_value, s->terminal_value_sz)) {
+				__FATAL("DIFF: terminal_value: [%s], [%s].", s->terminal_value, d->terminal_value);
+				hasDiff = true;
+			}
+		}
+	}
+	return hasDiff;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

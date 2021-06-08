@@ -6,10 +6,13 @@
 #include <iostream>
 
 #include "constants.h"
+#include "TestUtility.h"
 #include "Test002.h"
 
 static TestMainStatus __insert_or_update(TestUtility *testUtil, Table002 *table002, bool isTemp);
+#if 0
 static TestMainStatus __delete_and_insert(TestUtility *testUtil, Table002 *table002, bool isTemp);
+#endif
 
 static void __dumpTable002(TestUtility *testUtil, Table002 *s, Table002 *d);
 static bool __diffTable002(TestUtility *testUtil, Table002 *s, Table002 *d);
@@ -55,7 +58,7 @@ runTest002_01(TestUtility *testUtil, int testCount)
 		while (true) {
 			st = TestMainStatus::Ok;
 			LocalEndTransaction;
-			StartTransaction();
+			StartTransaction(SQLITE3_DEFERRED);
 			doingTransaction = true;
 			__INFO("START:%d:", i + 1);
 
@@ -188,7 +191,7 @@ runTest002_02(TestUtility *testUtil, int testCount)
 
 		while (true) {
 			st = TestMainStatus::Ok;
-			StartTransaction();
+			StartTransaction(SQLITE3_DEFERRED);
 
 			// 事前に全4レコードをランダムにセレクト、失敗かどうかは気にしない
 			{
@@ -287,6 +290,7 @@ END:
 	return st;
 }
 
+#if 0
 TestMainStatus
 __delete_and_insert(TestUtility *testUtil, Table002 *table002, bool isTemp)
 {
@@ -329,6 +333,7 @@ END:
 	__INFO("end.");
 	return st;
 }
+#endif
 
 void
 __dumpTable002(TestUtility *testUtil, Table002 *s, Table002 *d)

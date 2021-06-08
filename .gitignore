@@ -11,7 +11,7 @@
 /build
 /captures
 .externalNativeBuild
-.cxx
+.o
 local.properties
 
 /app/src/main/jniLibs/
@@ -20,3 +20,6 @@ local.properties
 /DeviceDocuments/
 /app/src/main/assets/db.sqlite3
 *.sw?
+
+/sample/sample
+/sample/obj

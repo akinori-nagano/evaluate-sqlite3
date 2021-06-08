@@ -1,5 +1,5 @@
-﻿#ifndef __TESTMAIN__TEST002_01_H__
-#define __TESTMAIN__TEST002_01_H__
+﻿#ifndef __TESTMAIN__TEST002_H__
+#define __TESTMAIN__TEST002_H__
 
 #include "TestUtility.h"
 

@@ -1,13 +1,15 @@
 ﻿#include <iostream>
 
 #include "constants.h"
+#include "TestUtility.h"
 #include "Test001.h"
 
 static TestMainStatus __case_insert_or_update(TestUtility *testUtil, const int id, Table001Kind updateKind);
 static TestMainStatus __case_delete_and_insert(TestUtility *testUtil, const int id);
 static TestMainStatus __case_select(TestUtility *testUtil, const int id);
+#if 0
 static void __dumpTable001(Table001 *p);
-static bool __diffTable001(TestUtility *testUtil, Table001 *s, Table001 *d);
+#endif
 
 
 TestMainStatus
@@ -67,7 +69,7 @@ __case_insert_or_update(TestUtility *testUtil, const int id, Table001Kind update
 	bool isInsert = true;
 
 	__INFO("start.");
-	StartTransaction();
+	StartTransaction(SQLITE3_DEFERRED);
 
 	// select してupdateかinsertか決める
 	{
@@ -108,7 +110,7 @@ __case_insert_or_update(TestUtility *testUtil, const int id, Table001Kind update
 			__FATAL("select failed.");
 			goto END;
 		}
-		if (__diffTable001(testUtil, &t, p)) {
+		if (testUtil->diffTable001(&t, p)) {
 			st = TestMainStatus::Error;
 			goto END;
 		}
@@ -141,7 +143,7 @@ __case_delete_and_insert(TestUtility *testUtil, const int id)
 		}
 	}
 
-	StartTransaction();
+	StartTransaction(SQLITE3_DEFERRED);
 
 	bool isDeleted = false;
 	TestMainStatus st = testUtil->deleteTable001(id);
@@ -163,7 +165,7 @@ __case_delete_and_insert(TestUtility *testUtil, const int id)
 			__FATAL("select failed. %d.", id);
 			goto END;
 		}
-		if (__diffTable001(testUtil, &t, p)) {
+		if (testUtil->diffTable001(&t, p)) {
 			st = TestMainStatus::Error;
 			goto END;
 		}
@@ -205,7 +207,7 @@ __case_select(TestUtility *testUtil, const int id)
 			__FATAL("cannot get testdata. %d, %d.", id, t.kind);
 			goto END;
 		}
-		if (__diffTable001(testUtil, &t, p)) {
+		if (testUtil->diffTable001(&t, p)) {
 			st = TestMainStatus::Error;
 			goto END;
 		}
@@ -218,6 +220,7 @@ END:
 	return st;
 }
 
+#if 0
 void
 __dumpTable001(Table001 *p)
 {
@@ -230,45 +233,4 @@ __dumpTable001(Table001 *p)
 	std::cout << p->updated_at << std::endl;
 	std::cout << "----------" << std::endl;
 }
-
-bool
-__diffTable001(TestUtility *testUtil, Table001 *s, Table001 *d)
-{
-	bool hasDiff = false;
-
-	if (s->id != d->id) {
-		__FATAL("DIFF: id: %d, %d.", s->id, d->id);
-		hasDiff = true;
-	}
-	if (s->kind != d->kind) {
-		__FATAL("DIFF: kind: %d, %d.", s->kind, d->kind);
-		hasDiff = true;
-	}
-	if (strcmp(s->contents_id, d->contents_id)) {
-		__FATAL("DIFF: contents_id: [%s], [%s].", s->contents_id, d->contents_id);
-		hasDiff = true;
-	}
-	if (strcmp(s->contents_code, d->contents_code)) {
-		__FATAL("DIFF: contents_code: [%s], [%s].", s->contents_code, d->contents_code);
-		hasDiff = true;
-	}
-	if (strcmp(s->hashed_id, d->hashed_id)) {
-		__FATAL("DIFF: hashed_id: [%s], [%s].", s->hashed_id, d->hashed_id);
-		hasDiff = true;
-	}
-	if (s->terminal_value_sz != d->terminal_value_sz) {
-		__FATAL("DIFF: terminal_value_sz: %d, %d.", s->terminal_value_sz, d->terminal_value_sz);
-		hasDiff = true;
-	} else {
-		if (s->terminal_value_sz == 0) {
-			__FATAL("DIFF: terminal_value: is null.");
-			hasDiff = true;
-		} else {
-			if (memcmp(s->terminal_value, d->terminal_value, s->terminal_value_sz)) {
-				__FATAL("DIFF: terminal_value: [%s], [%s].", s->terminal_value, d->terminal_value);
-				hasDiff = true;
-			}
-		}
-	}
-	return hasDiff;
-}
+#endif

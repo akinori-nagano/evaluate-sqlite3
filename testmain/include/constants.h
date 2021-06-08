@@ -9,15 +9,15 @@
 #define DBOpen() { \
 	if (testUtil->openDB(__FUNCTION__, dbPath) != TestMainStatus::Ok) { \
 		__FATAL("db open failed."); \
-		return; \
+		return TestMainStatus::Error; \
 	} \
 }
 #define DBClose() { \
 	testUtil->closeDB(__FUNCTION__); \
 }
 
-#define StartTransaction() { \
-	if (testUtil->startTransaction(__FUNCTION__)) { \
+#define StartTransaction(__LEVEL__) { \
+	if (testUtil->startTransaction(__FUNCTION__, __LEVEL__)) { \
 		__FATAL("start transaction failed."); \
 		return TestMainStatus::Error; \
 	} \
