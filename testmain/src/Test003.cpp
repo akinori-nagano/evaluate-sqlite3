@@ -400,7 +400,6 @@ __Test003_C1(TestUtility *testUtil, pthread_mutex_t *mt, pthread_cond_t *cv, pth
 
 	__INFO("#### STEP1: start");
 	StartTransaction(SQLITE3_DEFERRED);
-	myMicroSleep(HaveWaitingPeriod);
 
 	__INFO("wakeup for 02.");
 	if (__pthread_cond_signal(testUtil, ctDest)) {
@@ -485,6 +484,7 @@ __Test003_C2(TestUtility *testUtil, pthread_mutex_t *mt, pthread_cond_t *cv, pth
 	if (__pthread_cond_wait(testUtil, mt, cv)) {
 		return TestMainStatus::Error;
 	}
+	myMicroSleep(HaveWaitingPeriod);
 
 	// Step4
 	//    DEFERRED tansaction
