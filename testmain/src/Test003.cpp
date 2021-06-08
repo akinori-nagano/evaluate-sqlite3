@@ -19,8 +19,7 @@ static TestMainStatus __Test003_C2(TestUtility *testUtil, pthread_mutex_t *mt, p
 static TestMainStatus __pthread_cond_wait(TestUtility *testUtil, pthread_mutex_t *mt, pthread_cond_t *cv);
 static TestMainStatus __pthread_cond_signal(TestUtility *testUtil, pthread_cond_t *cv);
 
-// #define HaveWaitingPeriod	(100)
-#define HaveWaitingPeriod	(0)
+#define HaveWaitingPeriod (100)
 
 ////////////////////////////////////////////////////////////////////////////////
 // EXCLUSIVE
